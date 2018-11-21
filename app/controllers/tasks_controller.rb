@@ -2,7 +2,7 @@ class TasksController < ApplicationController
   before_action :set_task, only: [:show, :edit, :update, :destroy]
   def index
     @q = current_user.tasks.ransack(params[:q])
-    @tasks =  @q.result(distinct: true).recent
+    @tasks = @q.result(distinct: true)
   end
 
   def show
@@ -16,7 +16,7 @@ class TasksController < ApplicationController
   end
 
   def confirm_new
-    @task = current_user.tasks.new(tasks_params)
+    @task = current_user.tasks.new(task_params)
     render :new unless @task.valid?
   end
 
@@ -28,7 +28,8 @@ class TasksController < ApplicationController
       return
     end
     if @task.save
-      redirect_to @task,  notice: "タスク  「#{@task.name}」を登録しました。"
+      TaskMailer.creation_email(@task).deliver_now
+      redirect_to @task, notice: "タスク  「#{@task.name}」を登録しました。"
     else
       render :new
     end
